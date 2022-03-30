@@ -107,7 +107,33 @@ version="1.0">
 	<xsl:if test="@type!='segnum'">
 	  <text:p>
 		  <xsl:attribute name="text:style-name">Interlin_Freeform_Gloss_<xsl:value-of select="@lang"/></xsl:attribute>
-		  <xsl:apply-templates/>
+<xsl:choose>
+                       <xsl:when test="@lang='en' and @type='gls'">
+                             <xsl:text>Translation: </xsl:text>
+                       </xsl:when>
+                       <xsl:when test="@lang='lv' and @type='gls'">
+                             <xsl:text>Source: </xsl:text>
+                       </xsl:when>
+                       <xsl:when test="@lang='css' and @type='gls'">
+                             <xsl:text>Orig. spell: </xsl:text>
+                       </xsl:when>
+                       <xsl:when test="@lang='es' and @type='gls'">
+                             <xsl:text>Compare: </xsl:text>
+                       </xsl:when>
+                       <xsl:when test="@lang='en' and @type='lit'">
+                             <xsl:text>Source trans.: </xsl:text>
+                       </xsl:when>
+                       <xsl:when test="@lang='lv' and @type='lit'">
+                             <xsl:text>Research notes: </xsl:text>
+                       </xsl:when>
+                       <xsl:when test="@lang='css' and @type='lit'">
+                             <xsl:text>Edits: </xsl:text>
+                       </xsl:when>
+                       <xsl:when test="@lang='es' and @type='lit'">
+                             <xsl:text>Trans. of Spanish: </xsl:text>
+                       </xsl:when>
+                </xsl:choose>		  
+		   <xsl:apply-templates/>
 	  </text:p>
 	</xsl:if>
   </xsl:template>
