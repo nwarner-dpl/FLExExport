@@ -347,6 +347,19 @@ if one WS is used only for word glosses, we will still generate a morpheme-gloss
 			</xsl:if>
 		</style:paragraph-properties>
 	</style:style>
+    <!--This was added by Natasha to separate styles for literal and free translations.-->
+	<style:style style:family="paragraph" style:class="text">
+		<!-- Careful! White space is significant in these elements, don't let VS pretty-print them.-->
+		<xsl:attribute name="style:name">Interlin_Literal_Gloss_<xsl:value-of select="@lang"/></xsl:attribute>
+		<xsl:attribute name="style:display-name">Interlin Literal Gloss <xsl:value-of select="@lang"/></xsl:attribute>
+		<xsl:attribute name="style:parent-style-name">Interlin_Analysis_<xsl:value-of select="@lang"/></xsl:attribute>
+		<style:paragraph-properties>
+			<xsl:if test="//language[@vernacular='true' and @RightToLeft='true']">
+				<xsl:attribute name="fo:text-align">start</xsl:attribute>
+			</xsl:if>
+		</style:paragraph-properties>
+	</style:style>
+
 </xsl:template>
 
 </xsl:stylesheet>
