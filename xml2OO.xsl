@@ -106,8 +106,18 @@ version="1.0">
   <xsl:template match="phrase/item" mode="items"> <!-- freeform in its own paragraph -->
 	<xsl:if test="@type!='segnum'">
 	  <text:p>
-		  <xsl:attribute name="text:style-name">Interlin_Freeform_Gloss_<xsl:value-of select="@lang"/></xsl:attribute>
-<xsl:choose>
+		
+		  <xsl:choose>
+            <xsl:when test="@type='gls'">
+  		      <xsl:attribute name="text:style-name">Interlin_Freeform_Gloss_<xsl:value-of select="@lang"/></xsl:attribute>
+            </xsl:when>
+
+            <xsl:when test="@type='lit'">
+		      <xsl:attribute name="text:style-name">Interlin_Literal_Gloss_<xsl:value-of select="@lang"/></xsl:attribute>
+            </xsl:when>
+		  </xsl:choose>
+		
+			    <xsl:choose>
                        <xsl:when test="@lang='en' and @type='gls'">
                              <xsl:text>Translation: </xsl:text>
                        </xsl:when>
@@ -133,7 +143,7 @@ version="1.0">
                              <xsl:text>Trans. of Spanish: </xsl:text>
                        </xsl:when>
                 </xsl:choose>		  
-		   <xsl:apply-templates/>
+		  <xsl:apply-templates/>
 	  </text:p>
 	</xsl:if>
   </xsl:template>
