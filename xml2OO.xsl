@@ -24,187 +24,188 @@ xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0"
 xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
 xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"
 version="1.0">
-<!--  <xsl:output method="html" version="4.0" encoding="UTF-8" indent="yes" /> -->
-  <xsl:output method="xml" encoding="UTF-8" indent="yes" />
+	<!--xsl:output method="html" version="4.0" encoding="UTF-8" indent="yes" /-->
+	<xsl:output method="xml" encoding="UTF-8" indent="yes" />
 
 	<!-- This key is used as part of a trick way to output several style definitions once for each UNIQUE font attribute
 	 that occurs in a language element -->
 	<xsl:key name="distinct-font" match="language" use="@font"/>
 	<xsl:template match="document">
-	<office:document-content office:version="1.0">
-		- <office:automatic-styles>
-			- <style:style style:name="fr1" style:family="graphic" style:parent-style-name="Frame">
-				<style:graphic-properties fo:margin-left="0in" fo:margin-right="0.05in" style:vertical-pos="top" style:vertical-rel="baseline" fo:padding="0in" fo:border="none" style:shadow="none" />
-			</style:style>
-		</office:automatic-styles>
-		<office:body>
+		<office:document-content office:version="1.0">
+			- <office:automatic-styles>
+				- <style:style style:name="fr1" style:family="graphic" style:parent-style-name="Frame">
+					<style:graphic-properties fo:margin-left="0in" fo:margin-right="0.05in" style:vertical-pos="top" style:vertical-rel="baseline" fo:padding="0in" fo:border="none" style:shadow="none" />
+				</style:style>
+			</office:automatic-styles>
+			<office:body>
 				<office:text>
 					<xsl:apply-templates/>
 				</office:text>
 			</office:body>
-	</office:document-content>
-  </xsl:template>
+		</office:document-content>
+	</xsl:template>
 
-  <!-- INTERLINEAR-TEXT LEVEL -->
+	<!-- INTERLINEAR-TEXT LEVEL -->
 
-  <xsl:template match="interlinear-text">
-	<xsl:apply-templates/>
-  </xsl:template>
-
-  <xsl:template match="interlinear-text/item">
-	<text:p text:style-name="Default">
+	<xsl:template match="interlinear-text">
 		<xsl:apply-templates/>
-	</text:p>
-  </xsl:template>
+	</xsl:template>
 
-  <xsl:template match="interlinear-text/item[@type='title']">
-	<text:p text:style-name="Interlin_Title">
+	<xsl:template match="interlinear-text/item">
+		<text:p text:style-name="Default">
+			<xsl:apply-templates/>
+		</text:p>
+	</xsl:template>
+
+	<xsl:template match="interlinear-text/item[@type='title']">
+		<text:p text:style-name="Interlin_Title">
+			<xsl:apply-templates/>
+		</text:p>
+	</xsl:template>
+	<xsl:template match="interlinear-text/item[@type='title-abbreviation']"/>
+	<xsl:template match="interlinear-text/item[@type='source']">
+		<text:p text:style-name="Interlin_Source">
+			<xsl:apply-templates/>
+		</text:p>
+	</xsl:template>
+
+	<!-- PARAGRAPH LEVEL -->
+
+	<xsl:template match="paragraphs">
 		<xsl:apply-templates/>
-	</text:p>
-  </xsl:template>
-  <xsl:template match="interlinear-text/item[@type='title-abbreviation']"/>
-  <xsl:template match="interlinear-text/item[@type='source']">
-	<text:p text:style-name="Interlin_Source">
+	</xsl:template>
+
+	<xsl:template match="paragraph">
 		<xsl:apply-templates/>
-	</text:p>
-  </xsl:template>
+	</xsl:template>
 
-  <!-- PARAGRAPH LEVEL -->
+	<!-- PHRASE LEVEL -->
 
-  <xsl:template match="paragraphs">
-	<xsl:apply-templates/>
-  </xsl:template>
+	<xsl:template match="phrases">
+		<xsl:apply-templates/>
+	</xsl:template>
 
-  <xsl:template match="paragraph">
-	<xsl:apply-templates/>
-  </xsl:template>
+	<xsl:template match="phrase">
+		<text:p text:style-name="Interlin_Words">
+			<draw:frame text:anchor-type="as-char" draw:style-name="Interlin_Frame_Number" fo:min-width="0.1402in">
+				<xsl:attribute name="draw:name">FrameN<xsl:number level="any"/></xsl:attribute>
+				<xsl:attribute name="draw:z-index"><xsl:number level="any" count="item"/></xsl:attribute>
+				<draw:text-box fo:min-height="0.1402in">
+					<xsl:if test="item[@type='segnum']">
+						<text:p text:style-name="Interlin_Phrase_Number">
+							<xsl:value-of select="item[@type='segnum']"/>
+						</text:p>
+					</xsl:if>
+				</draw:text-box>
+			</draw:frame>
+			<xsl:apply-templates mode="words"/>
+		</text:p>
+		<xsl:apply-templates mode="items"/>
+	</xsl:template>
 
-  <!-- PHRASE LEVEL -->
+	<xsl:template match="phrase/item" mode="items"> <!-- freeform in its own paragraph -->
+		<xsl:if test="@type!='segnum'">
+			<text:p>
+			
+				<!-- This was added by Natasha to split the styles so that gls gets one style and lit gets a different one. -->
+				<xsl:choose>
+					<xsl:when test="@type='gls'">
+						<xsl:attribute name="text:style-name">Interlin_Freeform_Gloss_<xsl:value-of select="@lang"/></xsl:attribute>
+					</xsl:when>
 
-  <xsl:template match="phrases">
-	<xsl:apply-templates/>
-  </xsl:template>
+					<xsl:when test="@type='lit'">
+						<xsl:attribute name="text:style-name">Interlin_Literal_Gloss_<xsl:value-of select="@lang"/></xsl:attribute>
+					</xsl:when>
+				</xsl:choose>
+			
+				<!-- This was added by Natasha to provide nice labels. -->
+				<xsl:choose>
+					<xsl:when test="@lang='en' and @type='gls'">
+						<xsl:text>Translation: </xsl:text>
+					</xsl:when>
+					<xsl:when test="@lang='lv' and @type='gls'">
+						<xsl:text>Source: </xsl:text>
+					</xsl:when>
+					<xsl:when test="@lang='css' and @type='gls'">
+						<xsl:text>Orig. spell: </xsl:text>
+					</xsl:when>
+					<xsl:when test="@lang='es' and @type='gls'">
+						<xsl:text>Compare: </xsl:text>
+					</xsl:when>
+					<xsl:when test="@lang='en' and @type='lit'">
+						<xsl:text>Source trans.: </xsl:text>
+					</xsl:when>
+					<xsl:when test="@lang='lv' and @type='lit'">
+						<xsl:text>Research notes: </xsl:text>
+					</xsl:when>
+					<xsl:when test="@lang='css' and @type='lit'">
+						<xsl:text>Edits: </xsl:text>
+					</xsl:when>
+					<xsl:when test="@lang='es' and @type='lit'">
+						<xsl:text>Trans. of Spanish: </xsl:text>
+					</xsl:when>
+				</xsl:choose>
+				<xsl:apply-templates/>
+			</text:p>
+		</xsl:if>
+	</xsl:template>
 
-  <xsl:template match="phrase">
-	  <text:p text:style-name="Interlin_Words">
-		<draw:frame text:anchor-type="as-char" draw:style-name="Interlin_Frame_Number" fo:min-width="0.1402in">
-			<xsl:attribute name="draw:name">FrameN<xsl:number level="any"/></xsl:attribute>
-			<xsl:attribute name="draw:z-index"><xsl:number level="any" count="item"/></xsl:attribute>
+	<xsl:template match="*" mode="items">
+	</xsl:template>
+
+	<!-- WORD LEVEL -->
+
+	<xsl:template match="words" mode="words">
+		<xsl:apply-templates/>
+	</xsl:template>
+
+	<xsl:template match="*" mode="words">
+	</xsl:template>
+
+	<xsl:template match="word">
+		<draw:frame text:anchor-type="as-char" draw:style-name="Interlin_Frame_Word" fo:min-width="0.1402in">
+			<xsl:attribute name="draw:name">FrameW<xsl:number level="any"/></xsl:attribute>
+			<xsl:attribute name="draw:z-index">
+				<xsl:number level="any" count="item"/>
+			</xsl:attribute>
 			<draw:text-box fo:min-height="0.1402in">
-			  <xsl:if test="item[@type='segnum']">
-				<text:p text:style-name="Interlin_Phrase_Number">
-				  <xsl:value-of select="item[@type='segnum']"/>
-				</text:p>
-			  </xsl:if>
+				<xsl:apply-templates/>
 			</draw:text-box>
 		</draw:frame>
-		<xsl:apply-templates mode="words"/>
-	</text:p>
-	<xsl:apply-templates mode="items"/>
-  </xsl:template>
+	</xsl:template>
 
-  <xsl:template match="phrase/item" mode="items"> <!-- freeform in its own paragraph -->
-	<xsl:if test="@type!='segnum'">
-	  <text:p>
-		
-		  <xsl:choose>
-            <xsl:when test="@type='gls'">
-  		      <xsl:attribute name="text:style-name">Interlin_Freeform_Gloss_<xsl:value-of select="@lang"/></xsl:attribute>
-            </xsl:when>
-
-            <xsl:when test="@type='lit'">
-		      <xsl:attribute name="text:style-name">Interlin_Literal_Gloss_<xsl:value-of select="@lang"/></xsl:attribute>
-            </xsl:when>
-		  </xsl:choose>
-		
-			    <xsl:choose>
-                       <xsl:when test="@lang='en' and @type='gls'">
-                             <xsl:text>Translation: </xsl:text>
-                       </xsl:when>
-                       <xsl:when test="@lang='lv' and @type='gls'">
-                             <xsl:text>Source: </xsl:text>
-                       </xsl:when>
-                       <xsl:when test="@lang='css' and @type='gls'">
-                             <xsl:text>Orig. spell: </xsl:text>
-                       </xsl:when>
-                       <xsl:when test="@lang='es' and @type='gls'">
-                             <xsl:text>Compare: </xsl:text>
-                       </xsl:when>
-                       <xsl:when test="@lang='en' and @type='lit'">
-                             <xsl:text>Source trans.: </xsl:text>
-                       </xsl:when>
-                       <xsl:when test="@lang='lv' and @type='lit'">
-                             <xsl:text>Research notes: </xsl:text>
-                       </xsl:when>
-                       <xsl:when test="@lang='css' and @type='lit'">
-                             <xsl:text>Edits: </xsl:text>
-                       </xsl:when>
-                       <xsl:when test="@lang='es' and @type='lit'">
-                             <xsl:text>Trans. of Spanish: </xsl:text>
-                       </xsl:when>
-                </xsl:choose>		  
-		  <xsl:apply-templates/>
-	  </text:p>
-	</xsl:if>
-  </xsl:template>
-
-  <xsl:template match="*" mode="items">
-  </xsl:template>
-
-  <!-- WORD LEVEL -->
-
-  <xsl:template match="words" mode="words">
-	<xsl:apply-templates/>
-  </xsl:template>
-
-  <xsl:template match="*" mode="words">
-  </xsl:template>
-
-  <xsl:template match="word">
-	<draw:frame text:anchor-type="as-char" draw:style-name="Interlin_Frame_Word" fo:min-width="0.1402in">
-		<xsl:attribute name="draw:name">FrameW<xsl:number level="any"/></xsl:attribute>
-		<xsl:attribute name="draw:z-index">
-			<xsl:number level="any" count="item"/>
-		</xsl:attribute>
-		<draw:text-box fo:min-height="0.1402in">
+	<xsl:template match="word/item[@type='txt']">
+		<text:p>
+			<xsl:attribute name="text:style-name">Interlin_Base_<xsl:value-of select="@lang"/></xsl:attribute>
 			<xsl:apply-templates/>
-		</draw:text-box>
-	</draw:frame>
-  </xsl:template>
+		</text:p>
+	</xsl:template>
 
-  <xsl:template match="word/item[@type='txt']">
-	  <text:p>
-		<xsl:attribute name="text:style-name">Interlin_Base_<xsl:value-of select="@lang"/></xsl:attribute>
-		<xsl:apply-templates/>
-	</text:p>
-  </xsl:template>
+	<xsl:template match="word/item[@type='punct']">
+		<text:p text:style-name="Interlin_Baseline">
+			<xsl:apply-templates/>
+		</text:p>
+	</xsl:template>
 
-  <xsl:template match="word/item[@type='punct']">
-	  <text:p text:style-name="Interlin_Baseline">
-		<xsl:apply-templates/>
-	</text:p>
-  </xsl:template>
+	<xsl:template match="word/item[@type='gls']">
+		<text:p>
+			<xsl:attribute name="text:style-name">Interlin_Word_Gloss_<xsl:value-of select="@lang"/></xsl:attribute>
+			<xsl:apply-templates/>
+		</text:p>
+	</xsl:template>
 
-  <xsl:template match="word/item[@type='gls']">
-	<text:p>
-		<xsl:attribute name="text:style-name">Interlin_Word_Gloss_<xsl:value-of select="@lang"/></xsl:attribute>
-		<xsl:apply-templates/>
-	</text:p>
-  </xsl:template>
+	<xsl:template match="word/item[@type='pos']">
+		<text:p text:style-name="Interlin_Word_POS">
+			<xsl:apply-templates/>
+		</text:p>
+	</xsl:template>
 
-  <xsl:template match="word/item[@type='pos']">
-	  <text:p text:style-name="Interlin_Word_POS">
-		<xsl:apply-templates/>
-	</text:p>
-  </xsl:template>
+	<!-- MORPHEME LEVEL -->
 
-  <!-- MORPHEME LEVEL -->
-
-
-  <xsl:template match="morphemes">
-	  <text:p text:style-name="Interlin_Morphemes">
-		  <xsl:apply-templates/>
-	  </text:p>
+	<xsl:template match="morphemes">
+		<text:p text:style-name="Interlin_Morphemes">
+			<xsl:apply-templates/>
+		</text:p>
 	</xsl:template>
 
 	<xsl:template match="morph">
@@ -219,72 +220,72 @@ version="1.0">
 		</draw:frame>
 	</xsl:template>
 
-  <xsl:template match="item[@type!='hn' and @type!='variantTypes' and @type!='glsAppend']" mode="rowItems">
-	  <text:p>
-		  <xsl:if test="@type='txt'">
-			<xsl:attribute name="text:style-name">Interlin_Morph_<xsl:value-of select="@lang"/></xsl:attribute>
-		  </xsl:if>
-		  <xsl:if test="@type='cf'">
-			  <xsl:attribute name="text:style-name">Interlin_Cf_<xsl:value-of select="@lang"/></xsl:attribute>
-		  </xsl:if>
-		  <xsl:if test="@type='msa'">
-			  <xsl:attribute name="text:style-name">Interlin_Morpheme_POS</xsl:attribute>
-		  </xsl:if>
-		  <xsl:apply-templates/>
-	  </text:p>
-  </xsl:template>
+	<xsl:template match="item[@type!='hn' and @type!='variantTypes' and @type!='glsAppend']" mode="rowItems">
+		<text:p>
+			<xsl:if test="@type='txt'">
+				<xsl:attribute name="text:style-name">Interlin_Morph_<xsl:value-of select="@lang"/></xsl:attribute>
+			</xsl:if>
+			<xsl:if test="@type='cf'">
+				<xsl:attribute name="text:style-name">Interlin_Cf_<xsl:value-of select="@lang"/></xsl:attribute>
+			</xsl:if>
+			<xsl:if test="@type='msa'">
+				<xsl:attribute name="text:style-name">Interlin_Morpheme_POS</xsl:attribute>
+			</xsl:if>
+			<xsl:apply-templates/>
+		</text:p>
+	</xsl:template>
 
-  <xsl:template match="*" mode="rowItems">
-  </xsl:template>
-  <xsl:template match="*" mode="rows">
-  </xsl:template>
+	<xsl:template match="*" mode="rowItems">
+	</xsl:template>
+	<xsl:template match="*" mode="rows">
+	</xsl:template>
 
-  <!-- suppress homograph numbers in normal mode, so they don't occupy an extra line-->
-  <xsl:template match="morph/item[@type='hn']">
-  </xsl:template>
-  <xsl:template match="morph/item[@type='variantTypes']">
-  </xsl:template>
-  <xsl:template match="morph/item[@type='glsAppend']">
-  </xsl:template>
+	<!-- suppress homograph numbers in normal mode, so they don't occupy an extra line-->
+	<xsl:template match="morph/item[@type='hn']">
+	</xsl:template>
+	<xsl:template match="morph/item[@type='variantTypes']">
+	</xsl:template>
+	<xsl:template match="morph/item[@type='glsAppend']">
+	</xsl:template>
 
-  <!-- This mode occurs within the 'cf' item to display the homograph number from the following item.-->
-  <xsl:template match="morph/item[@type='hn']" mode="hn">
-	  <text:span text:style-name="Interlin_Homograph"><xsl:apply-templates/></text:span>
-  </xsl:template>
-  <xsl:template match="morph/item[@type='variantTypes']" mode="variantTypes">
-	<text:span text:style-name="Interlin_VariantTypes"><xsl:apply-templates/></text:span>
-  </xsl:template>
-  <xsl:template match="morph/item[@type='glsAppend']" mode="glsAppend">
-	<text:span text:style-name="Interlin_VariantTypes"><xsl:apply-templates/></text:span>
-  </xsl:template>
+	<!-- This mode occurs within the 'cf' item to display the homograph number from the following item.-->
+	<xsl:template match="morph/item[@type='hn']" mode="hn">
+		<text:span text:style-name="Interlin_Homograph"><xsl:apply-templates/></text:span>
+	</xsl:template>
+	<xsl:template match="morph/item[@type='variantTypes']" mode="variantTypes">
+		<text:span text:style-name="Interlin_VariantTypes"><xsl:apply-templates/></text:span>
+	</xsl:template>
+	<xsl:template match="morph/item[@type='glsAppend']" mode="glsAppend">
+		<text:span text:style-name="Interlin_VariantTypes"><xsl:apply-templates/></text:span>
+	</xsl:template>
 
-  <xsl:template match="morph/item[@type='cf']" mode="rowItems">
+	<xsl:template match="morph/item[@type='cf']" mode="rowItems">
 		<text:p>
 			<xsl:attribute name="text:style-name">Interlin_Cf_<xsl:value-of select="@lang"/></xsl:attribute>
 			<xsl:apply-templates/>
-	  <xsl:variable name="homographNumber" select="following-sibling::item[1][@type='hn']"/>
+			<xsl:variable name="homographNumber" select="following-sibling::item[1][@type='hn']"/>
 			<xsl:if test="$homographNumber">
 				<!-- todo: make a subscript with a rPr element-->
-						<xsl:apply-templates select="$homographNumber" mode="hn"/>
-		   </xsl:if>
-	  <xsl:variable name="variantTypes" select="following-sibling::item[(count($homographNumber)+1)][@type='variantTypes']"/>
-	  <xsl:if test="$variantTypes">
-		<xsl:apply-templates select="$variantTypes" mode="variantTypes"/>
-	  </xsl:if>
+				<xsl:apply-templates select="$homographNumber" mode="hn"/>
+			</xsl:if>
+			<xsl:variable name="variantTypes" select="following-sibling::item[(count($homographNumber)+1)][@type='variantTypes']"/>
+			<xsl:if test="$variantTypes">
+				<xsl:apply-templates select="$variantTypes" mode="variantTypes"/>
+			</xsl:if>
 		</text:p>
-  </xsl:template>
+	</xsl:template>
 
-  <xsl:template match="morph/item[@type='gls']" mode="rowItems">
+	<xsl:template match="morph/item[@type='gls']" mode="rowItems">
 		<text:p>
 			<xsl:attribute name="text:style-name">Interlin_Morpheme_Gloss_<xsl:value-of select="@lang"/></xsl:attribute>
 			<xsl:apply-templates/>
-	  <xsl:variable name="glsAppend" select="following-sibling::item[1][@type='glsAppend']"/>
-	  <xsl:if test="$glsAppend">
-		<xsl:apply-templates select="$glsAppend" mode="glsAppend"/>
-	  </xsl:if>
+			<xsl:variable name="glsAppend" select="following-sibling::item[1][@type='glsAppend']"/>
+			<xsl:if test="$glsAppend">
+				<xsl:apply-templates select="$glsAppend" mode="glsAppend"/>
+			</xsl:if>
 		</text:p>
-  </xsl:template>
+	</xsl:template>
 
-  <!-- MISCELLANEOUS -->
+	<!-- MISCELLANEOUS -->
 
 </xsl:stylesheet>
