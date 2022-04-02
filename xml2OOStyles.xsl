@@ -20,6 +20,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/"
 xmlns:xlink="http://www.w3.org/1999/xlink"
 xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0"
 xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0"
+xmlns:loext="urn:org:documentfoundation:names:experimental:office:xmlns:loext:1.0"
 xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0"
 xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
 xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"
@@ -185,6 +186,9 @@ version="1.0">
 			</style:style>
 			<!--Used for numbering of individual phrases -->
 			<style:style style:name="Interlin_Phrase_Number" style:display-name="Interlin Phrase Number" style:family="paragraph" style:parent-style-name="Interlin_Analysis" style:class="text">
+				<!-- This was added by Natasha to set the top margin and make it bold. -->
+				<style:paragraph-properties fo:margin-top="0.16in"/>
+				<style:text-properties fo:font-weight="bold" style:font-weight-asian="bold" style:font-weight-complex="bold"/>
 			</style:style>
 			<!--The morpheme part-of-speech (technically morpho-syntactic information) line (morph/item[@type='pos']) -->
 			<style:style style:name="Interlin_Morpheme_POS" style:display-name="Interlin Morpheme POS" style:family="paragraph" style:parent-style-name="Interlin_Analysis" style:class="text">
@@ -282,13 +286,24 @@ version="1.0">
 		<xsl:attribute name="style:name">Interlin_Base_<xsl:value-of select="@lang"/></xsl:attribute>
 		<xsl:attribute name="style:display-name">Interlin Base <xsl:value-of select="@lang"/></xsl:attribute>
 		<xsl:attribute name="style:parent-style-name">Interlin_Vern_<xsl:value-of select="@lang"/></xsl:attribute>
-		<style:text-properties fo:font-weight="bold" style:font-weight-asian="bold" style:font-weight-complex="bold"/>
+		<!-- This was added by Natasha to set the top margin. -->
+		<xsl:if test="@lang='css'">
+			<style:paragraph-properties fo:margin-top="0.16in"/>
+		</xsl:if>
+		<!-- This was added by Natasha to unbold the css font. -->
+		<xsl:if test="@lang!='css'">
+			<style:text-properties fo:font-weight="bold" style:font-weight-asian="bold" style:font-weight-complex="bold"/>
+		</xsl:if>
 	</style:style>
 	<!--Shows how the word was broken into morphemes (morph/item[@type='txt']) -->
 	<style:style style:family="paragraph" style:class="text">
 		<xsl:attribute name="style:name">Interlin_Morph_<xsl:value-of select="@lang"/></xsl:attribute>
 		<xsl:attribute name="style:display-name">Interlin Morph <xsl:value-of select="@lang"/></xsl:attribute>
 		<xsl:attribute name="style:parent-style-name">Interlin_Vern_<xsl:value-of select="@lang"/></xsl:attribute>
+		<!-- This was added by Natasha to make the font red for the Interlin_Morph_css paragraph style. -->
+		<xsl:if test="@lang='css'">
+			<style:text-properties fo:color="#ff0000" loext:opacity="100%" fo:font-weight="bold" style:font-weight-asian="bold" style:font-weight-complex="bold"/>
+		</xsl:if>
 	</style:style>
 	<!--The citation form line (morph/item[@type='cf']) -->
 	<style:style style:family="paragraph" style:class="text">
@@ -346,8 +361,12 @@ if one WS is used only for word glosses, we will still generate a morpheme-gloss
 				<xsl:attribute name="fo:text-align">start</xsl:attribute>
 			</xsl:if>
 		</style:paragraph-properties>
+		<!-- This was added by Natasha to make the font red for the Interlin_Freeform_Gloss_en paragraph style. -->
+		<xsl:if test="@lang='en'">
+			<style:text-properties fo:color="#ff0000" loext:opacity="100%"/>
+		</xsl:if>
 	</style:style>
-    <!--This was added by Natasha to separate styles for literal and free translations.-->
+	<!-- This was added by Natasha to separate styles for literal and free translations. -->
 	<style:style style:family="paragraph" style:class="text">
 		<!-- Careful! White space is significant in these elements, don't let VS pretty-print them.-->
 		<xsl:attribute name="style:name">Interlin_Literal_Gloss_<xsl:value-of select="@lang"/></xsl:attribute>
